@@ -36,23 +36,9 @@ parseSin = do{ string "sin"; return sin }
 parseBase :: Parser Double
 parseBase = parseParens <|> parseNumber
 
-parseUn :: Parser Double
-parseUn = do
-                lhv <- parseBase
-                spaces
-                tail <- many parseTail
-                return $ applyAll "0+" tail
-            where parseTail =
-                    do
-                        op <- parseSin
-                        spaces
-                        rhv <- parseBase
-                        spaces
-                        return (`op` rhv)
-
 parseProd :: Parser Double
 parseProd = do
-                lhv <- parseUn
+                lhv <- parseBase
                 spaces
                 tail <- many parseTail
                 return $ applyAll lhv tail
@@ -60,7 +46,7 @@ parseProd = do
                     do
                         op <- parseMul <|> parseDiv <|> parseMod
                         spaces
-                        rhv <- parseUn
+                        rhv <- parseBase
                         spaces
                         return (`op` rhv)
 
