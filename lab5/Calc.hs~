@@ -58,7 +58,7 @@ parseUn = do
                  spaces
                  rhv <- parseBase
                  spaces
-                 return $ `op` rhv
+                 return `op` rhv
 
 parseProd :: Parser Double
 parseProd = do
