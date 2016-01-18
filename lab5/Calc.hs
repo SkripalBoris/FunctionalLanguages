@@ -9,9 +9,6 @@ type Parser a = Parsec String () a
 applyAll :: a -> [a -> a] -> a
 applyAll x ops = foldl (\x f -> f x) x ops
 
---applyAllUn :: a -> a -> a
---applyAllUn x ops = foldl (\x f -> f x) x ops
-
 parseDigit :: Parser Char
 parseDigit = oneOf (['0'..'9']++['.'])
 
@@ -36,33 +33,32 @@ parseMod = do{ char '%'; return mod' }
 parseSin :: Parser (Double -> Double)
 parseSin = do{ string "sin"; return sin }
 
-parseBase :: Parser Double
-parseBase = parseParens <|> parseNumber
+parseCos :: Parser (Double -> Double)
+parseCos = do{ string "cos"; return cos }
 
---parseUn :: Parser Double
---parseUn = do
---                lhv <- parseBase
---                spaces
---                tail <- many parseTail
---                return $ applyAll lhv tail
---            where parseTail =
---                    do
---                        op <- parseSin
---                        spaces
---                        rhv <- parseBase
---                        spaces
---                        return (`op` rhv)
+parseLog :: Parser (Double -> Double)
+parseLog = do{ string "log"; return log }
+
+parseSqrt :: Parser (Double -> Double)
+parseSqrt = do{ string "sqrt"; return sqrt }
+
+parseNeg :: Parser (Double -> Double)
+parseNeg = do{ char '-'; return negate }
+
+parseBase :: Parser Double
+parseBase = parseParens <|> parseNumber <|> parseUn
+
 parseUn :: Parser Double
 parseUn = do
-                 op <- parseSin
+                 op <- parseSin <|> parseCos <|> parseLog <|> parseSqrt <|> parseNeg
                  spaces
                  rhv <- parseBase
                  spaces
-                 return $ op rhv
+                 return (op rhv)
 
 parseProd :: Parser Double
 parseProd = do
-                lhv <- parseUn
+                lhv <- parseBase
                 spaces
                 tail <- many parseTail
                 return $ applyAll lhv tail
@@ -70,7 +66,7 @@ parseProd = do
                     do
                         op <- parseMul <|> parseDiv <|> parseMod
                         spaces
-                        rhv <- parseUn
+                        rhv <- parseBase
                         spaces
                         return (`op` rhv)
 
